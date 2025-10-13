@@ -17,7 +17,7 @@ function Header() {
         style={{ cursor: "pointer" }}
         onClick={() => navigate("/intro")}
       >
-        Nevada Youth Policy Tracker
+        Nevada Youth Policy Tracker (83rd Session Legislation)
       </h1>
       <nav className="nav-tabs">
         <NavLink
