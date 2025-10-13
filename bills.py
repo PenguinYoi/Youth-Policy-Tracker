@@ -48,6 +48,12 @@ class Bill:
             "oppose": self.oppose_num,
             "not_sure": self.not_sure_num
         }
+    
+    def get_bill_type(self):
+        """Extract bill type from bill ID (e.g., 'AB' from 'AB1')"""
+        import re
+        match = re.match(r'^([A-Z]+)', self.id)
+        return match.group(1) if match else "Other"
 
 
 class BillList:
@@ -136,6 +142,27 @@ class BillList:
     def get_all_bills(self):
         """Get all bills as dictionaries"""
         return [bill.to_dict() for bill in self.bills]
+    
+    def get_bills_grouped(self):
+        """
+        Get bills organized by type (AB, SB, HB, etc.)
+        Returns a dictionary with bill types as keys and lists of bills as values
+        """
+        grouped = {}
+        
+        for bill in self.bills:
+            bill_type = bill.get_bill_type()
+            
+            if bill_type not in grouped:
+                grouped[bill_type] = []
+            
+            grouped[bill_type].append(bill.to_dict())
+        
+        # Sort each group by bill number (numerically)
+        for bill_type in grouped:
+            grouped[bill_type].sort(key=lambda b: int(''.join(filter(str.isdigit, b['id']))) if any(c.isdigit() for c in b['id']) else 0)
+        
+        return grouped
 
     def get_bill(self, bill_id):
         """Get a specific bill by ID"""

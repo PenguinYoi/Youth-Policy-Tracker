@@ -1,8 +1,4 @@
-import os
-for root, dirs, files in os.walk("NV"):
-    level = root.replace("NV", "").count(os.sep)
-    indent = " " * 2 * level
-    print(f"{indent}{os.path.basename(root)}/")
-    subindent = " " * 2 * (level + 1)
-    for file in files[:3]:  # Show first 3 files
-        print(f"{subindent}{file}")
+import json
+with open("NV/2025-2025_83rd_Legislature/bill/AB1.json") as f:
+    bill_data = json.load(f)
+    print(json.dumps(bill_data, indent=2))
