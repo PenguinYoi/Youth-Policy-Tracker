@@ -1,56 +1,347 @@
+/* Container */
 .reps-container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 20px;
-  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
 }
 
-.reps-container h2 {
+/* Header */
+.reps-header {
   text-align: center;
-  margin-bottom: 20px;
-  color: #4f46e5;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e0e0e0;
 }
 
+.reps-header h1 {
+  font-size: 2.5rem;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.reps-header p {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  padding: 1.5rem;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  border-color: #2c5aa0;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}
+
+/* Sections */
+.reps-section {
+  margin-bottom: 3rem;
+}
+
+.reps-section h2 {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px solid #2c5aa0;
+}
+
+/* Grid */
 .reps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
 }
 
+/* Card */
 .rep-card {
-  background: #f9f9f9;
-  border-radius: 15px;
-  padding: 15px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
 }
 
 .rep-card:hover {
-  transform: translateY(-5px);
+  border-color: #2c5aa0;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(44, 90, 160, 0.15);
 }
 
-.rep-card h3 {
-  margin: 0 0 10px 0;
-  color: #1e3a8a;
+.rep-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
+.rep-card-header h3 {
+  font-size: 1.3rem;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+  font-weight: 700;
+}
+
+.rep-chamber {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.party-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.party-D {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.party-R {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.party-I {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+/* Rep Info */
+.rep-info {
+  background: #f9f9f9;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.rep-info p {
+  margin: 0.25rem 0;
+  color: #555;
+}
+
+/* Voting Record */
+.voting-record {
+  margin-bottom: 1.5rem;
+}
+
+.voting-record h4 {
+  font-size: 0.95rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.voting-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.voting-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.voting-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  min-width: 80px;
+}
+
+.voting-bar {
+  flex: 1;
+  height: 24px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.voting-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.voting-percent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #333;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* Links */
 .rep-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.rep-links a {
-  background: #4f46e5;
-  color: white;
+.link-btn {
+  padding: 0.5rem 0.75rem;
+  background: #f0f0f0;
+  color: #333;
   text-decoration: none;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  transition: background 0.2s ease;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid #ddd;
 }
 
-.rep-links a:hover {
-  background: #4338ca;
+.link-btn:hover {
+  background: #2c5aa0;
+  color: white;
+  border-color: #2c5aa0;
+  transform: translateY(-2px);
+}
+
+.link-btn.twitter {
+  background: #1DA1F2;
+  color: white;
+  border-color: #1DA1F2;
+}
+
+.link-btn.facebook {
+  background: #1877F2;
+  color: white;
+  border-color: #1877F2;
+}
+
+/* Contact Button */
+.contact-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #2c5aa0 0%, #1e3f5a 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+}
+
+/* Contact Template */
+.contact-template {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-left: 4px solid #2c5aa0;
+  border-radius: 6px;
+}
+
+.contact-template h4 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.contact-template textarea {
+  width: 100%;
+  height: 150px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  resize: none;
+  margin-bottom: 0.75rem;
+}
+
+.contact-info {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reps-container {
+    padding: 1rem;
+  }
+
+  .reps-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    min-width: auto;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .reps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rep-card-header {
+    flex-direction: column;
+  }
+
+  .party-badge {
+    width: 100%;
+    text-align: center;
+  }
 }

@@ -98,14 +98,6 @@ function BillList() {
             <path d="m21 21-4.35-4.35"></path>
           </svg>
         </div>
-        {searchTerm && (
-          <button 
-            className="clear-search"
-            onClick={() => setSearchTerm("")}
-          >
-            Clear
-          </button>
-        )}
       </div>
 
       {/* Results Summary */}
@@ -118,12 +110,6 @@ function BillList() {
         {sortedBillTypes.length === 0 ? (
           <div className="no-results">
             <p>No bills found matching your search.</p>
-            <button 
-              className="reset-search"
-              onClick={() => setSearchTerm("")}
-            >
-              Clear Search
-            </button>
           </div>
         ) : (
           sortedBillTypes.map((billType) => (
