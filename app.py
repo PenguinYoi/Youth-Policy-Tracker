@@ -2,9 +2,11 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from bills import BillList, Bill
 import os
+import json
 from langchain_groq import ChatGroq
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import TextLoader
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -13,6 +15,30 @@ CORS(app)
 # Initialize Bills
 # -----------------------
 bill_list = BillList()
+
+# Initialize BillList (this will call load_bills, which tries to load the JSON)
+bill_list = BillList()
+
+# Optional: clear defaults if you want only JSON bills
+bill_list.bills = []
+
+# Get path to JSON file
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BILLS_JSON_PATH = os.path.join(BASE_DIR, "nevada_bills.json")
+
+# Load JSON bills
+with open(BILLS_JSON_PATH, "r", encoding="utf-8") as f:
+    bills_data = json.load(f)
+    for bill_data in bills_data:
+        bill = Bill(
+            bill_data["id"],                 # bill_id
+            bill_data["name"],               # name
+            bill_data["status"],             # status
+            bill_data["date_introduced"],    # date_introduced
+            bill_data["link"],               # link
+            bill_data.get("summary", "")     # summary (optional)
+        )
+        bill_list.add_bill(bill)
 
 # -----------------------
 # Initialize Chatbot
@@ -25,60 +51,68 @@ deepseek = ChatGroq(api_key=api_key, model_name=model_name)
 parser = StrOutputParser()
 deepseek_chain = deepseek | parser
 
-# Load context file (all bill text / reference info)
-try:
-    loader = TextLoader("C:/Users/jsjh4/OneDrive/Desktop/YouthPolicyTracker/data.txt", encoding='utf-8')
-    document = loader.load()
-    context_content = document[0].page_content if document else ""
-except Exception as e:
-    print(f"Warning: Could not load context file: {e}")
-    context_content = ""
-
-
 def find_relevant_bills(question, max_bills=5):
     """
-    Filter bills relevant to the user's question
-    Returns up to max_bills that match keywords
+    Much better bill filtering with multiple matching strategies
     """
-    question_lower = question.lower()
-    
-    # Define keyword groups for different topics
-    topic_keywords = {
-        'education': ['school', 'student', 'teacher', 'pupil', 'classroom', 'educational', 'education'],
-        'healthcare': ['health', 'medical', 'doctor', 'patient', 'hospital', 'insurance', 'care'],
-        'environment': ['environment', 'water', 'pollution', 'air', 'climate', 'conservation'],
-        'tax': ['tax', 'revenue', 'income', 'property'],
-        'transportation': ['vehicle', 'driver', 'license', 'road', 'traffic', 'bus', 'transport'],
-        'housing': ['house', 'home', 'property', 'real estate', 'landlord', 'tenant'],
-        'business': ['business', 'small business', 'commerce', 'trade'],
-        'employment': ['employment', 'employee', 'employer', 'wage', 'work', 'job'],
-        'crime': ['crime', 'criminal', 'offense', 'penalty', 'law enforcement', 'police'],
-        'government': ['government', 'agency', 'budget', 'state', 'county']
-    }
-    
-    # Score each bill
+    question_lower = question.lower().strip()
     scored_bills = []
+    
+    # Extract potential bill numbers (AB123, SB456, etc.)
+    bill_pattern = r'\b(AB|SB|HB|SCR|HCR|SR|HR|AR|ACR|AJR|SJR|IP)\s?(\d+)\b'
+    mentioned_bills = re.findall(bill_pattern, question, re.IGNORECASE)
+    mentioned_bill_ids = [f"{bill_type.upper()}{num}" for bill_type, num in mentioned_bills]
     
     for bill in bill_list.bills:
         score = 0
         bill_text = (bill.name + " " + bill.summary).lower()
+        bill_id_lower = bill.id.lower()
         
-        # Check for keyword matches
+        # Strategy 1: Exact bill ID match (highest priority)
+        if bill.id in mentioned_bill_ids:
+            score += 50
+        if bill_id_lower in question_lower:
+            score += 30
+        if bill_id_lower.replace(' ', '') in question_lower.replace(' ', ''):
+            score += 25
+        
+        # Strategy 2: Topic-based matching with better keywords
+        topic_keywords = {
+            'education': ['education', 'school', 'student', 'teacher', 'classroom', 'curriculum', 'university', 'college', 'campus', 'learning', 'academic'],
+            'healthcare': ['health', 'medical', 'healthcare', 'hospital', 'doctor', 'patient', 'insurance', 'medicaid', 'medicare', 'clinic', 'treatment'],
+            'environment': ['environment', 'climate', 'pollution', 'water', 'air', 'conservation', 'energy', 'renewable', 'solar', 'wind', 'clean', 'green'],
+            'housing': ['housing', 'rent', 'landlord', 'tenant', 'affordable', 'homeless', 'property', 'apartment', 'lease', 'eviction'],
+            'tax': ['tax', 'revenue', 'income', 'property tax', 'sales tax', 'taxation', 'fee', 'levy'],
+            'criminal': ['crime', 'criminal', 'police', 'sentencing', 'prison', 'justice', 'law enforcement', 'offense', 'penalty'],
+            'business': ['business', 'commerce', 'license', 'regulation', 'small business', 'enterprise', 'industry', 'economic'],
+            'transportation': ['transportation', 'highway', 'road', 'vehicle', 'driver', 'transit', 'bus', 'train', 'infrastructure'],
+            'voting': ['voting', 'election', 'ballot', 'vote', 'electoral', 'registration', 'polling'],
+            'technology': ['technology', 'digital', 'internet', 'cyber', 'data', 'privacy', 'online', 'broadband'],
+            'youth': ['youth', 'teen', 'student', 'young', 'child', 'children', 'minor', 'school']
+        }
+        
         for topic, keywords in topic_keywords.items():
-            if any(keyword in question_lower for keyword in keywords):
-                # If question mentions a topic, check if bill covers it
-                if any(keyword in bill_text for keyword in keywords):
-                    score += 3
+            # Check if question mentions the topic
+            question_has_topic = any(keyword in question_lower for keyword in keywords)
+            # Check if bill is about the topic
+            bill_has_topic = any(keyword in bill_text for keyword in keywords)
+            
+            if question_has_topic and bill_has_topic:
+                score += 15  # Strong match: question asks about topic and bill addresses it
+            elif bill_has_topic:
+                score += 3   # Weak match: bill is about topic
         
-        # Check for exact bill number match
-        if bill.id.lower() in question_lower:
-            score += 10
+        # Strategy 3: Word overlap with meaningful words
+        question_words = set([word for word in question_lower.split() if len(word) > 3])
+        bill_words = set(bill_text.split())
+        common_words = question_words.intersection(bill_words)
+        score += len(common_words) * 2
         
-        # Check for partial name matches
-        question_words = question_lower.split()
-        for word in question_words:
-            if len(word) > 3 and word in bill_text:
-                score += 1
+        # Strategy 4: Status relevance
+        status_words = ['passed', 'introduced', 'approved', 'rejected', 'pending', 'committee']
+        for status_word in status_words:
+            if status_word in question_lower and status_word in bill.status.lower():
+                score += 8
         
         if score > 0:
             scored_bills.append((bill, score))
@@ -87,67 +121,92 @@ def find_relevant_bills(question, max_bills=5):
     scored_bills.sort(key=lambda x: x[1], reverse=True)
     return [bill for bill, score in scored_bills[:max_bills]]
 
-
 def get_ai_response(question):
     """
-    Generate AI response using LLM with filtered bill context
+    Much better AI prompt with rich context and clear instructions
     """
-    # Find only relevant bills instead of using all
-    relevant_bills = find_relevant_bills(question, max_bills=10)
+    # Find relevant bills
+    relevant_bills = find_relevant_bills(question, max_bills=6)
     
-    # Build context from relevant bills only
+    # Build detailed bill context
     if relevant_bills:
-        bills_context = "\n".join([
-            f"Bill {bill.id}: {bill.name}\nStatus: {bill.status}\nSummary: {bill.summary}\n"
+        bills_context = "\n\n".join([
+            f"BILL {bill.id}:\n"
+            f"Title: {bill.name}\n"
+            f"Status: {bill.status}\n"
+            f"Introduced: {bill.date_introduced}\n"
+            f"Summary: {bill.summary}\n"
+            f"More info: {bill.link}"
             for bill in relevant_bills
         ])
-        bills_header = f"Relevant Bills ({len(relevant_bills)} found):"
+        bills_header = f"RELEVANT BILLS ({len(relevant_bills)} found):"
     else:
-        bills_context = "No directly relevant bills found in the system."
-        bills_header = "Available Bills:"
+        bills_context = "No bills directly match your query. Try asking about specific bill numbers or topics like education, healthcare, environment, etc."
+        bills_header = "BILL SEARCH RESULTS:"
+
+    
+    # Rich website and Nevada context
+    website_context = """
+    CONTEXT - NEVADA YOUTH POLICY TRACKER:
+
+    This website helps students understand Nevada legislation and engage with state government.
+
+    AUDIENCE: High school students learning about civic engagement
+
+    RESPONSE GUIDELINES:
+    - Provide clear, factual information about Nevada bills
+    - Explain legislative concepts in straightforward terms
+    - Focus on accuracy and relevance
+    - Keep responses concise and to the point
+    - When appropriate, note how students can get involved
+    - When asked a question, as long as it is relevant to Nevada legislation, include information about it even if you have to search it up
+    - Link to official resources when possible
+    - You don't have to mention bills or list links if they are not relevant to the question
+    """
     
     template = """
-    You are the AI chatbot for the Youth Policy Tracker app.
-    You are designed to provide assistance to high school students who have questions about Nevada legislative bills, representatives, or the website.
-    Do not invent facts or make assumptions.
-    If you don't know an answer, respond with: "I'm not sure about that."
-    
+    {website_context}
+
     {bills_header}
     {bills_context}
-    
-    Additional Context:
-    {context}
-    
-    Question: {question}
-    Answer:
+
+    QUESTION: {question}
+
+    Respond with clear, factual information. Focus on the specific bills and topics mentioned.
+    If you reference bills, include their numbers and current status.
+    Keep your response direct and informative.
+
+    RESPONSE:
     """
     
     prompt = template.format(
+        website_context=website_context,
         bills_header=bills_header,
         bills_context=bills_context,
-        context=context_content,
         question=question
     )
     
-    answer = deepseek_chain.invoke(prompt)
-    return answer.strip().split('\n')[-1] if answer else "I'm not sure about that."
+    try:
+        answer = deepseek_chain.invoke(prompt)
+        # Clean up the response
+        cleaned_answer = answer.strip()
+        # Remove any "Response:" or "Answer:" prefixes the model might add
+        cleaned_answer = re.sub(r'^(Response|Answer):\s*', '', cleaned_answer, flags=re.IGNORECASE)
+        return cleaned_answer
+    except Exception as e:
+        print(f"Error getting AI response: {e}")
+        return "I'm having trouble processing your question right now. Please try again later."
 
-
-# -----------------------
-# Bill Routes
-# -----------------------
 
 @app.route("/bills", methods=["GET"])
 def get_bills():
     """Get all bills"""
     return jsonify(bill_list.get_all_bills())
 
-
 @app.route("/bills/grouped", methods=["GET"])
 def get_bills_grouped():
     """Get bills organized by type (AB, SB, HB, etc.)"""
     return jsonify(bill_list.get_bills_grouped())
-
 
 @app.route("/bills/<bill_id>", methods=["GET"])
 def get_bill(bill_id):
@@ -156,7 +215,6 @@ def get_bill(bill_id):
     if bill:
         return jsonify(bill.to_dict())
     return jsonify({"error": "Bill not found"}), 404
-
 
 @app.route("/bills/<bill_id>/vote", methods=["POST"])
 def vote_bill(bill_id):
@@ -180,7 +238,6 @@ def vote_bill(bill_id):
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-
 @app.route("/bills/<bill_id>/polls", methods=["GET"])
 def get_bill_polls(bill_id):
     """Get poll results for a specific bill"""
@@ -190,40 +247,50 @@ def get_bill_polls(bill_id):
     
     return jsonify(bill.get_poll_results())
 
-
 # -----------------------
 # Chatbot Route
 # -----------------------
-
-@app.route("/chat", methods=["POST"])
+@app.route("/chat", methods=["GET", "POST"])
 def chat():
     """
-    Handle chatbot conversations
-    Supports discussion about bills and general questions
+    Handle chatbot conversations.
     """
+    if request.method == "GET":
+        return jsonify({
+            "message": "Chat endpoint is running. Send a POST request with JSON data like:",
+            "example": {
+                "question": "What bills are about healthcare?",
+                "chatLog": []
+            }
+        })
+
+    # POST logic
     data = request.json
     question = data.get("question")
     chat_log = data.get("chatLog", [])
-    
+
     if not question:
         return jsonify({"error": "Question required"}), 400
-    
-    # Build context from chat history (limited to avoid token overflow)
+
+    # Build context from chat history
     context_text = "\n".join([
         f"{msg.get('sender', 'User')}: {msg.get('text', '')}"
-        for msg in chat_log[-5:] if msg  # Only use last 5 messages
+        for msg in chat_log[-5:] if msg
     ])
-    
+
     # Create full prompt with conversation context
-    full_prompt = f"""
-    Previous conversation:
-    {context_text}
-    
-    Current question: {question}
-    """
-    
+    if context_text.strip():
+        full_prompt = f"""
+        Previous conversation:
+        {context_text}
+
+        Current question: {question}
+        """
+    else:
+        full_prompt = question
+
     answer = get_ai_response(full_prompt)
-    
+
     return jsonify({
         "answer": answer,
         "success": True
@@ -241,7 +308,6 @@ def health_check():
         "status": "healthy",
         "bills_loaded": len(bill_list.bills)
     })
-
 
 # -----------------------
 # Run App
