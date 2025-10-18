@@ -1,93 +1,214 @@
 .chatbot-container {
-  max-width: 500px;
-  margin: 30px auto;
-  background: #f9f9f9;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 40px auto;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  border: 1px solid #e8e8e8;
+  height: 700px;
 }
 
 .chatbot-title {
-  background: #4f46e5; /* violet header */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-align: center;
-  padding: 15px;
-  font-size: 1.5rem;
+  padding: 20px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .chat-window {
   flex-grow: 1;
-  padding: 15px;
-  max-height: 400px;
+  padding: 25px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: #f3f4f6; /* soft gray */
+  gap: 16px;
+  background: #fafafa;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
+}
+
+.chat-window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .chat-msg {
-  padding: 10px 15px;
-  border-radius: 20px;
-  max-width: 80%;
+  padding: 14px 18px;
+  border-radius: 18px;
+  max-width: 75%;
   word-wrap: break-word;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .user-msg {
   align-self: flex-end;
-  background: #4f46e5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  border-bottom-right-radius: 6px;
 }
 
 .bot-msg {
   align-self: flex-start;
-  background: #e0e7ff;
-  color: #1e3a8a;
+  background: white;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .bot-link {
   display: inline-block;
-  margin-top: 5px;
-  background: #4f46e5;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   text-decoration: none;
-  padding: 5px 10px;
+  padding: 8px 16px;
   border-radius: 12px;
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
 }
 
 .bot-link:hover {
-  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
 
 .chat-form {
   display: flex;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #edf2f7;
+  background: white;
+  padding: 0;
 }
 
 .chat-form input {
   flex-grow: 1;
-  padding: 12px;
+  padding: 18px 20px;
   border: none;
-  border-radius: 0 0 0 15px;
   outline: none;
   font-size: 1rem;
+  background: transparent;
+  color: #2d3748;
+}
+
+.chat-form input::placeholder {
+  color: #a0aec0;
 }
 
 .chat-form button {
-  padding: 12px 20px;
+  padding: 0 24px;
   border: none;
-  background: #4f46e5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   cursor: pointer;
-  font-weight: bold;
-  border-radius: 0 0 15px 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 80px;
 }
 
 .chat-form button:hover {
-  background: #4338ca;
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: none;
+}
+
+.chat-form button:active {
+  transform: scale(0.98);
+}
+
+/* Empty state styling */
+.chat-window:empty::before {
+  content: "Ask me about Nevada bills, representatives, or policy questions...";
+  display: block;
+  text-align: center;
+  color: #a0aec0;
+  font-style: italic;
+  margin-top: 50%;
+  transform: translateY(-50%);
+  padding: 0 20px;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  align-self: flex-start;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 6px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a0aec0;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .chatbot-container {
+    margin: 0;
+    border-radius: 0;
+    height: 100vh;
+    max-width: none;
+  }
+  
+  .chat-msg {
+    max-width: 85%;
+    font-size: 0.9rem;
+  }
+  
+  .chat-window {
+    padding: 20px 15px;
+  }
 }

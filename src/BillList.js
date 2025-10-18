@@ -8,6 +8,19 @@ function BillList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Bill type descriptions mapping
+  const billTypeDescriptions = {
+    "AB": "Assembly Bill – new law from the Assembly",
+    "SB": "Senate Bill – new law from the Senate",
+    "AR": "Assembly Resolution – Assembly-only statement or honor",
+    "SR": "Senate Resolution – Senate-only statement or honor",
+    "ACR": "Assembly Concurrent Resolution – joint statement from both houses",
+    "SCR": "Senate Concurrent Resolution – joint statement from both houses",
+    "AJR": "Assembly Joint Resolution – Assembly request to Congress/feds",
+    "SJR": "Senate Joint Resolution – Senate request to Congress/feds",
+    "IP": "Initiative Petition – citizen-proposed law"
+  };
+
   useEffect(() => {
     fetch("http://127.0.0.1:5000/bills/grouped")
       .then((res) => res.json())
@@ -80,7 +93,7 @@ function BillList() {
     <div className="container">
       <div className="bills-header">
         <h1 className="page-title">Nevada Youth Policy Tracker</h1>
-        <p className="bills-subtitle">Browse and vote on Nevada legislation</p>
+        <p className="bills-subtitle">Browse Nevada legislation</p>
       </div>
 
       {/* Modern Search Bar */}
@@ -121,7 +134,7 @@ function BillList() {
                 <div className="group-title-wrapper">
                   <span className="bill-type-badge">{billType}</span>
                   <span className="group-title">
-                    {billType} Bills
+                    {billTypeDescriptions[billType] || `${billType} Bills`}
                   </span>
                   <span className="bill-count">
                     {filteredGroups[billType].length}
